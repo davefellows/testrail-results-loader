@@ -51,10 +51,12 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResultsParser.cs" />
     <Compile Include="TestRailModel\TestCase.cs" />
     <Compile Include="TestRailModel\TestResult.cs" />
     <Compile Include="TestRailModel\TestResults.cs" />
     <Compile Include="TestRailModel\TestRun.cs" />
+    <Compile Include="TrxResultsParser.cs" />
     <Compile Include="TypeSwitch.cs" />
     <Compile Include="VS10Xsd.cs" />
     <Compile Include="XmlStringConverter.cs" />

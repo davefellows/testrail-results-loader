@@ -19,7 +19,7 @@ namespace TestRail.ResultsImporter
         private static APIClient _client;
         private const int ProjectId = 1;
         private const int SectionId = 2;
-        private const string TestResultsFile = "TestResultsFile-small.trx";
+        private const string TestResultsFile = "TestResultsFile.trx";
 
         static void Main(string[] args)
         {
@@ -31,25 +31,17 @@ namespace TestRail.ResultsImporter
             };
 
 
-            TestRunType testRunType = DeserializeTestReportFile(TestResultsFile);
+            ResultsParser resultsParser = new TrxResultsParser(TestResultsFile);
 
-            
-            var testRunId = AddTestRun(testRunType.name);
-
-            // Individual Test Results
-            var resultsFromReport = GetResultsItems(testRunType).ToList();
+            // Add a TestRail test run for this instantiation
+            var testRunId = AddTestRun(resultsParser.TestName);
 
             // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
             var testCases = GetTestCases(SectionId);
 
 
             // Get only those tests that don't already exist in TestRail
-            var missingTests = (from testResult in resultsFromReport
-                                where !(
-                                    from testcase in testCases
-                                    select testcase["title"]
-                                    ).Contains(testResult.testName)
-                                select testResult).ToList();
+            var missingTests = resultsParser.GetMissingTests(testCases).ToList();
 
             if (missingTests.Any())
             {
@@ -63,64 +55,37 @@ namespace TestRail.ResultsImporter
                 testCases = GetTestCases(SectionId);
             }
 
-            var testResultsWithCaseIds =
-                                from testResult in resultsFromReport
-                                join testcase in testCases
-                                on testResult.testName equals testcase["title"]
-                                select new TestResult
-                                {
-                                    CaseId = int.Parse(testcase["id"].ToString()),
-                                    StatusId = testResult.outcome == TestOutcome.Passed.ToString() ? 1 : 5,
-                                    Elapsed = FormatDuration(testResult.duration)
-                                };
+            var testResultsWithCaseIds = resultsParser.GetTestResultsWithCaseIds(testCases);
 
 
             AddTestResults(testResultsWithCaseIds, testRunId);
             
         }
 
-        /// <summary>
-        /// Format the duration to TestRail's expected format: {hours}h {minutes}m {seconds}s
-        /// </summary>
-        private static string FormatDuration(string duration)
-        {
-            var t = TimeSpan.Parse(duration);
-            
-            var elapsed = string.Empty;
 
-            // Time resolution in TestRail is down to seconds so if less than
-            // 1 second then show 1 second rather than blank.
-            if (t.TotalSeconds < 1) elapsed = "1s";
-            else
-            {
-                if (t.Hours > 0) elapsed += $"{t.Hours}h ";
-                if (t.Minutes > 0) elapsed += $"{t.Minutes}m ";
-                if (t.Seconds > 0) elapsed += $"{t.Seconds}s";
-            }
-
-            return elapsed;
-        }
-
-        private static List<Dictionary<string, object>> GetTestCases(int sectionId)
+        private static IEnumerable<TestCase> GetTestCases(int sectionId)
         {
             // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
             var testCasesResponse = (JArray) _client.SendGet("get_cases/1&section_id=" + SectionId);
             
-            return JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
+            var testCasesList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
+
+            return testCasesList.Select(
+                test => new TestCase
+                {
+                    Title = test["title"].ToString(),
+                    Id = int.Parse(test["id"].ToString())
+                }).ToList();
         }
 
-        private static async Task AddMissingTests(IEnumerable<UnitTestResultType> missingTests)
+        private static async Task AddMissingTests(IEnumerable<TestCase> missingTests)
         {
             var tasks = missingTests.Select(AddTestCase);
             await Task.WhenAll(tasks);
         }
 
-        private static async Task AddTestCase(UnitTestResultType missingTest)
+        private static async Task AddTestCase(TestCase testCase)
         {
-            var testCase = new TestCase
-            {
-                Title = missingTest.testName
-            };
             var response = (JObject)_client.SendPost("add_case/" + SectionId, testCase);
         }
 
@@ -165,7 +130,6 @@ namespace TestRail.ResultsImporter
             return returnValue.Items.Select(item => (UnitTestResultType)item);
             //return (UnitTestResultType[])returnValue.Items;
         }
-
     }
 }
 
