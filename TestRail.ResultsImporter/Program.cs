@@ -10,6 +10,7 @@ using System.Xml;
 using Gurock.TestRail;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TestRail.ResultsImporter.TestRailModel;
 
 namespace TestRail.ResultsImporter
 {
@@ -69,24 +70,35 @@ namespace TestRail.ResultsImporter
                                 select new TestResult
                                 {
                                     CaseId = int.Parse(testcase["id"].ToString()),
-                                    StatusId = testResult.outcome == TestOutcome.Passed.ToString() ? 1 : 5
+                                    StatusId = testResult.outcome == TestOutcome.Passed.ToString() ? 1 : 5,
+                                    Elapsed = FormatDuration(testResult.duration)
                                 };
 
 
             AddTestResults(testResultsWithCaseIds, testRunId);
             
-            try
+        }
+
+        /// <summary>
+        /// Format the duration to TestRail's expected format: {hours}h {minutes}m {seconds}s
+        /// </summary>
+        private static string FormatDuration(string duration)
+        {
+            var t = TimeSpan.Parse(duration);
+            
+            var elapsed = string.Empty;
+
+            // Time resolution in TestRail is down to seconds so if less than
+            // 1 second then show 1 second rather than blank.
+            if (t.TotalSeconds < 1) elapsed = "1s";
+            else
             {
-                //var response = (JArray)client.SendPost("add_results/1", res);
-            }
-            catch (HttpException ex)
-            {
-                //if (ex.GetHttpCode() == 400 && ex.Message == "Field: test_id is not a valid test.")
-                //{
-                //}
-                throw;
+                if (t.Hours > 0) elapsed += $"{t.Hours}h ";
+                if (t.Minutes > 0) elapsed += $"{t.Minutes}m ";
+                if (t.Seconds > 0) elapsed += $"{t.Seconds}s";
             }
 
+            return elapsed;
         }
 
         private static List<Dictionary<string, object>> GetTestCases(int sectionId)

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace TestRail.ResultsImporter
+namespace TestRail.ResultsImporter.TestRailModel
 {
     public class TestResults
     {
