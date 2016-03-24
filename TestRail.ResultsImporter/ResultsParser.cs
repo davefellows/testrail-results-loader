@@ -10,13 +10,26 @@ using TestRail.ResultsImporter.TestRailModel;
 
 namespace TestRail.ResultsImporter
 {
+    /// <summary>
+    /// Base class for parsing test results files
+    /// </summary>
     internal abstract class ResultsParser
     {
-
+        /// <summary>
+        /// Name/Title for the Test run
+        /// </summary>
         public abstract string TestName { get; }
 
+        /// <summary>
+        /// Returns a collection of tests that don't exist in TestRail (matching on test Title/Name).
+        /// </summary>
+        /// <param name="existingTestCases">Existing tests in TestRail</param>
         public abstract IEnumerable<TestCase> GetMissingTests(IEnumerable<TestCase> existingTestCases);
 
+        /// <summary>
+        /// Returns a collection of test results with the TestRail case Id added to the results.
+        /// </summary>
+        /// <param name="existingTestCases">Existing tests in TestRail</param>
         public abstract IEnumerable<TestResult> GetTestResultsWithCaseIds(IEnumerable<TestCase> existingTestCases);
 
         protected static T LoadFile<T>(string xmlPath, XmlReaderSettings settings = null)

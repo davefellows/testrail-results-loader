@@ -10,13 +10,13 @@ namespace TestRail.ResultsImporter
 {
     internal class TrxResultsParser : ResultsParser
     {
-        private TestRunType _testRunType;
-        private IEnumerable<UnitTestResultType> _resultsFromReport;
+        private readonly TestRunType _testRunType;
+        private readonly IEnumerable<UnitTestResultType> _resultsFromReport;
 
         public TrxResultsParser(string filename)
         {
             _testRunType = LoadFile<TestRunType>(filename);
-            _resultsFromReport = GetResultsItems();
+            _resultsFromReport = GetResultItems();
         }
 
         public override string TestName => _testRunType.name;
@@ -51,10 +51,12 @@ namespace TestRail.ResultsImporter
 
         private static string GetLogAndError(UnitTestResultType resultItem)
         {
-            
+            // Some items don't contain either
             if (resultItem.Items == null) return string.Empty;
+
             string error, stdout;
 
+            // extract error if available
             try
             {
                 error = "Error:\n" + (((OutputType)resultItem.Items[0]).ErrorInfo == null
@@ -67,6 +69,7 @@ namespace TestRail.ResultsImporter
                 error = string.Empty;
             }
 
+            // extract StdOut if available
             try
             {
                 stdout = "Log:\n" + ((XmlNode[])((OutputType)resultItem.Items[0]).StdOut)[0].Value;
@@ -81,14 +84,13 @@ namespace TestRail.ResultsImporter
         }
 
 
-        private IEnumerable<UnitTestResultType> GetResultsItems()
+        private IEnumerable<UnitTestResultType> GetResultItems()
         {
-            ResultsType returnValue = new ResultsType();
+            var returnValue = new ResultsType();
 
             foreach (var item in _testRunType.Items)
             {
-                TypeSwitch.Switch(
-                    item,
+                TypeSwitch.Switch(item,
                     TypeSwitch.Case<ResultsType>((results) => returnValue = results));
             }
 

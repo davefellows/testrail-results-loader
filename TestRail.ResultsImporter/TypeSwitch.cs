@@ -4,6 +4,7 @@
 // </copyright>
 // <summary>
 //   Class that allows switching on types, initial starting code from stackoverflow
+//   [DF]: Pulled from WAES repo
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
