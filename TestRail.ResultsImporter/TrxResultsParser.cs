@@ -57,7 +57,7 @@ namespace TestRail.ResultsImporter
 
             try
             {
-                error = (((OutputType)resultItem.Items[0]).ErrorInfo == null
+                error = "Error:\n" + (((OutputType)resultItem.Items[0]).ErrorInfo == null
                     ? string.Empty
                     : ((XmlNode[])((OutputType)resultItem.Items[0]).ErrorInfo.Message)[0].Value) + "\n\n";
             }
@@ -69,11 +69,11 @@ namespace TestRail.ResultsImporter
 
             try
             {
-                stdout = ((XmlNode[])((OutputType)resultItem.Items[0]).StdOut)[0].Value;
+                stdout = "Log:\n" + ((XmlNode[])((OutputType)resultItem.Items[0]).StdOut)[0].Value;
             }
             catch (Exception ex)
             {
-                Log.Error($"Error parsing StdOut from test result: {resultItem.testName}", ex);
+                Log.Error($"Error parsing Stdout from test result: {resultItem.testName}", ex);
                 stdout = string.Empty;
             }
 
