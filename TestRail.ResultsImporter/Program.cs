@@ -30,15 +30,14 @@ namespace TestRail.ResultsImporter
                 Password = ConfigurationManager.AppSettings["password"]
             };
 
-
+            
             ResultsParser resultsParser = new TrxResultsParser(TestResultsFile);
 
             // Add a TestRail test run for this instantiation
             var testRunId = AddTestRun(resultsParser.TestName);
 
-            // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
+            // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
             var testCases = GetTestCases(SectionId);
-
 
             // Get only those tests that don't already exist in TestRail
             var missingTests = resultsParser.GetMissingTests(testCases).ToList();
@@ -47,7 +46,8 @@ namespace TestRail.ResultsImporter
             {
                 Task.Run(async () =>
                 {
-                    await AddMissingTests(missingTests);
+                    // Add the missing test cases
+                    await AddMissingTestCases(missingTests);
                 }).GetAwaiter().GetResult();
 
 
@@ -55,30 +55,39 @@ namespace TestRail.ResultsImporter
                 testCases = GetTestCases(SectionId);
             }
 
+            // Combine the Test report results with the Test Case id from TestRail
             var testResultsWithCaseIds = resultsParser.GetTestResultsWithCaseIds(testCases);
 
 
+            // Add the test results to TestRail
             AddTestResults(testResultsWithCaseIds, testRunId);
-            
         }
 
 
         private static IEnumerable<TestCase> GetTestCases(int sectionId)
         {
-            // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
-            var testCasesResponse = (JArray) _client.SendGet("get_cases/1&section_id=" + SectionId);
-            
-            var testCasesList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
+            try
+            {
+                // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
+                var testCasesResponse = (JArray)_client.SendGet("get_cases/1&section_id=" + SectionId);
 
-            return testCasesList.Select(
-                test => new TestCase
-                {
-                    Title = test["title"].ToString(),
-                    Id = int.Parse(test["id"].ToString())
-                }).ToList();
+                var testCasesList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
+
+                return testCasesList.Select(
+                    test => new TestCase
+                    {
+                        Title = test["title"].ToString(),
+                        Id = int.Parse(test["id"].ToString())
+                    }).ToList();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting TestRail Test Cases for Section Id '{SectionId}'.", ex);
+                throw;
+            }
         }
 
-        private static async Task AddMissingTests(IEnumerable<TestCase> missingTests)
+        private static async Task AddMissingTestCases(IEnumerable<TestCase> missingTests)
         {
             var tasks = missingTests.Select(AddTestCase);
             await Task.WhenAll(tasks);
@@ -86,7 +95,15 @@ namespace TestRail.ResultsImporter
 
         private static async Task AddTestCase(TestCase testCase)
         {
-            var response = (JObject)_client.SendPost("add_case/" + SectionId, testCase);
+            try
+            {
+                _client.SendPost("add_case/" + SectionId, testCase);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error adding TestRail Test Cases {testCase.Title} to Section Id '{SectionId}'.", ex);
+                throw;
+            }
         }
 
         private static void AddTestResults(IEnumerable<TestResult> testResultsToAdd, int testRunId)
@@ -95,41 +112,35 @@ namespace TestRail.ResultsImporter
             {
                 Results = testResultsToAdd.ToList()
             };
-            var response = (JArray)_client.SendPost("add_results_for_cases/" + testRunId, testResults);
-            
-            //TODO: Check response.
+
+            try
+            {
+                _client.SendPost("add_results_for_cases/" + testRunId, testResults);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error adding {testResults.Results.Count()} TestRail test results. Test Run ID: {testRunId}", ex);
+                throw;
+            }
         }
 
         private static int AddTestRun(string testRunName)
         {
             var testRun = new TestRun {Name = testRunName};
-            var response = (JObject)_client.SendPost("add_run/" + ProjectId, testRun);
 
-             return (int)response["id"];
-        }
-
-
-        private static TestRunType DeserializeTestReportFile(string reportFile)
-        {
-            // MSTest is known to not properly escape characters in its reports
-            var settings = new XmlReaderSettings { CheckCharacters = false };
-            return XmlStringConverter.Load<TestRunType>(reportFile, settings);
-        }
-
-        private static IEnumerable<UnitTestResultType> GetResultsItems(TestRunType testRun)
-        {
-            ResultsType returnValue = new ResultsType();
-
-            foreach (var item in testRun.Items)
+            try
             {
-                TypeSwitch.Switch(
-                    item,
-                    TypeSwitch.Case<ResultsType>((results) => returnValue = results));
+                var response = (JObject)_client.SendPost("add_run/" + ProjectId, testRun);
+                return (int)response["id"];
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error adding TestRail Test Run '{testRunName}' for Project '{ProjectId}'", ex);
+                throw;
             }
 
-            return returnValue.Items.Select(item => (UnitTestResultType)item);
-            //return (UnitTestResultType[])returnValue.Items;
         }
+
     }
 }
 

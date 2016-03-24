@@ -12,18 +12,12 @@ namespace TestRail.ResultsImporter
 {
     internal abstract class ResultsParser
     {
-        public ResultsParser(string filename)
-        {
-            Load(filename);
-        }
 
         public abstract string TestName { get; }
 
         public abstract IEnumerable<TestCase> GetMissingTests(IEnumerable<TestCase> existingTestCases);
 
         public abstract IEnumerable<TestResult> GetTestResultsWithCaseIds(IEnumerable<TestCase> existingTestCases);
-
-        protected abstract void Load(string filename);
 
         protected static T LoadFile<T>(string xmlPath, XmlReaderSettings settings = null)
         {
