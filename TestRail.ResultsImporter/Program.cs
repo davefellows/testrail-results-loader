@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Xml;
-using Gurock.TestRail;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using TestRail.ResultsImporter.TestRailModel;
+﻿using System.Threading.Tasks;
 
 namespace TestRail.ResultsImporter
 {

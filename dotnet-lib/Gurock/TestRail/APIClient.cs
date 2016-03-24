@@ -13,13 +13,16 @@ using System;
 using System.Net;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Gurock.TestRail
 {
-	public class APIClient
+    using System.Diagnostics.Eventing.Reader;
+
+    public class APIClient
 	{
 		private string m_user;
 		private string m_password;
@@ -86,12 +89,12 @@ namespace Gurock.TestRail
 		 * data                 The data to submit as part of the request (as
 		 *                      serializable object, e.g. a dictionary)
 		 */
-		public object SendPost(string uri, object data)
+		public async Task<object> SendPost(string uri, object data)
 		{
-			return SendRequest("POST", uri, data);
+			return await SendRequest("POST", uri, data);
 		}
 
-		private object SendRequest(string method, string uri, object data)
+		private async Task<object> SendRequest(string method, string uri, object data)
 		{
 			string url = this.m_url + uri;
 
@@ -131,10 +134,10 @@ namespace Gurock.TestRail
 			// Execute the actual web request (GET or POST) and record any
 			// occurred errors.
 			Exception ex = null;
-			HttpWebResponse response = null;
+			WebResponse response = null;
 			try
 			{
-				response = (HttpWebResponse)request.GetResponse();
+			    response = await request.GetResponseAsync();
 			}
 			catch (WebException e)
 			{
@@ -143,7 +146,7 @@ namespace Gurock.TestRail
 					throw;
 				}
 
-				response = (HttpWebResponse)e.Response;
+				response = e.Response;
 				ex = e;
 			}
 
@@ -194,9 +197,11 @@ namespace Gurock.TestRail
 					error = "No additional error message received";
 				}
 
+			    int statusCode = (int)((HttpWebResponse)response).StatusCode;
+
 				throw new HttpException(
-					(int)response.StatusCode,
-					$"TestRail API returned HTTP {(int) response.StatusCode} ({error})"
+                    statusCode,
+					$"TestRail API returned HTTP {statusCode} ({error})"
 					);
 			}
 

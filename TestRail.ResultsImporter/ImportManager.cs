@@ -38,7 +38,7 @@ namespace TestRail.ResultsImporter
             ResultsParser resultsParser = new TrxResultsParser(_testResultsFile);
 
             // Add a TestRail test run for this instantiation
-            var testRunId = AddTestRun(resultsParser.TestName, _projectId);
+            var testRunId = AddTestRun(resultsParser.TestName, _projectId).Result;
 
             // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
             var testCases = GetTestCases(_sectionId).ToList();
@@ -60,7 +60,7 @@ namespace TestRail.ResultsImporter
 
 
             // Add the test results to TestRail
-            AddTestResults(testResultsWithCaseIds, testRunId);
+            await AddTestResults(testResultsWithCaseIds, testRunId);
         }
 
 
@@ -97,7 +97,7 @@ namespace TestRail.ResultsImporter
         {
             try
             {
-                _client.SendPost("add_case/" + sectionId, testCase);
+                await _client.SendPost("add_case/" + sectionId, testCase);
             }
             catch (Exception ex)
             {
@@ -106,7 +106,7 @@ namespace TestRail.ResultsImporter
             }
         }
 
-        private static void AddTestResults(IEnumerable<TestResult> testResultsToAdd, int testRunId)
+        private static async Task AddTestResults(IEnumerable<TestResult> testResultsToAdd, int testRunId)
         {
             var testResults = new TestResults
             {
@@ -115,7 +115,7 @@ namespace TestRail.ResultsImporter
 
             try
             {
-                _client.SendPost("add_results_for_cases/" + testRunId, testResults);
+                await _client.SendPost("add_results_for_cases/" + testRunId, testResults);
             }
             catch (Exception ex)
             {
@@ -124,14 +124,14 @@ namespace TestRail.ResultsImporter
             }
         }
 
-        private static int AddTestRun(string testRunName, int projectId)
+        private static async Task<int> AddTestRun(string testRunName, int projectId)
         {
             var testRun = new TestRun { Name = testRunName };
 
             try
             {
-                var response = (JObject)_client.SendPost("add_run/" + projectId, testRun);
-                return (int)response["id"];
+                var response = await _client.SendPost("add_run/" + projectId, testRun);
+                return (int)((JObject)response)["id"];
             }
             catch (Exception ex)
             {
