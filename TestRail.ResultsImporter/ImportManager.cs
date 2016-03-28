@@ -41,7 +41,7 @@ namespace TestRail.ResultsImporter
             var testRunId = AddTestRun(resultsParser.TestName, _projectId).Result;
 
             // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
-            var testCases = GetTestCases(_sectionId).ToList();
+            var testCases = (await GetTestCases(_sectionId)).ToList();
 
             // Get only those tests that don't already exist in TestRail.
             var missingTests = resultsParser.GetMissingTests(testCases).ToList();
@@ -52,7 +52,7 @@ namespace TestRail.ResultsImporter
                 await AddMissingTestCases(missingTests);
 
                 // Refresh list of test cases in TestRail
-                testCases = GetTestCases(_sectionId).ToList();
+                testCases = (await GetTestCases(_sectionId)).ToList();
             }
 
             // Combine the Test report results with the Test Case id from TestRail
@@ -64,12 +64,12 @@ namespace TestRail.ResultsImporter
         }
 
 
-        private static IEnumerable<TestCase> GetTestCases(int sectionId)
+        private static async Task<IEnumerable<TestCase>> GetTestCases(int sectionId)
         {
             try
             {
                 // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
-                var testCasesResponse = (JArray)_client.SendGet("get_cases/1&section_id=" + sectionId);
+                var testCasesResponse = (JArray)await _client.SendGet("get_cases/1&section_id=" + sectionId);
 
                 var testCasesList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
 

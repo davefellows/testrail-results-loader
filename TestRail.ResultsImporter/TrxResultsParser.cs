@@ -44,43 +44,49 @@ namespace TestRail.ResultsImporter
                         CaseId = testcase.Id,
                         StatusId = testResult.outcome == TestOutcome.Passed.ToString() ? 1 : 5,
                         Elapsed = FormatDuration(testResult.duration),
-                        Comment = GetLogAndError(testResult)
+                        Comment = FormatDatesAndStdout(testResult)
                     };
 
         }
 
-        private static string GetLogAndError(UnitTestResultType resultItem)
+        private static string FormatDatesAndStdout(UnitTestResultType resultItem)
         {
-            // Some items don't contain either
-            if (resultItem.Items == null) return string.Empty;
 
-            string error, stdout;
+            string error = string.Empty, stdout = string.Empty;
 
-            // extract error if available
-            try
+            // Some items don't contain either Log or Error
+            if (resultItem.Items != null)
             {
-                error = "Error:\n" + (((OutputType)resultItem.Items[0]).ErrorInfo == null
-                    ? string.Empty
-                    : ((XmlNode[])((OutputType)resultItem.Items[0]).ErrorInfo.Message)[0].Value) + "\n\n";
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error parsing ErrorInfo from test result: {resultItem.testName}", ex);
-                error = string.Empty;
+
+                // extract error if available
+                try
+                {
+                    error = (((OutputType) resultItem.Items[0]).ErrorInfo == null
+                        ? string.Empty
+                        : ((XmlNode[]) ((OutputType) resultItem.Items[0]).ErrorInfo.Message)[0].Value);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Error parsing ErrorInfo from test result: {resultItem.testName}", ex);
+                    error = string.Empty;
+                }
+
+                // extract StdOut if available
+                try
+                {
+                    stdout = ((XmlNode[]) ((OutputType) resultItem.Items[0]).StdOut)[0].Value;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Error parsing Stdout from test result: {resultItem.testName}", ex);
+                    stdout = string.Empty;
+                }
             }
 
-            // extract StdOut if available
-            try
-            {
-                stdout = "Log:\n" + ((XmlNode[])((OutputType)resultItem.Items[0]).StdOut)[0].Value;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error parsing Stdout from test result: {resultItem.testName}", ex);
-                stdout = string.Empty;
-            }
-
-            return error + stdout;
+            return $"Start:\t{resultItem.startTime}\n" +
+                   $"End:\t{resultItem.endTime}\n\n" +
+                   $"Error:\n{error}\n\n" +
+                   $"Log:\n{stdout}";
         }
 
 

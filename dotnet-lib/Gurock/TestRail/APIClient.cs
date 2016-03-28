@@ -71,9 +71,9 @@ namespace Gurock.TestRail
 		 * uri                  The API method to call including parameters
 		 *                      (e.g. get_case/1)
 		 */
-		public object SendGet(string uri)
+		public async Task<object> SendGet(string uri)
 		{
-			return SendRequest("GET", uri, null);
+			return await SendRequest("GET", uri, null);
 		}
 
 		/**
