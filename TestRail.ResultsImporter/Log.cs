@@ -13,6 +13,11 @@ namespace TestRail.ResultsImporter
             //TODO Where should we log? Stdout is probably the best option
             Console.WriteLine($"Info:  {message}");
         }
+        public static void Warn(string message)
+        {
+            Console.WriteLine($"Warn:  {message}");
+        }
+
 
         public static void Error(string message, Exception exception)
         {

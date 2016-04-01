@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,8 +38,11 @@ namespace TestRail.ResultsImporter
         {
             ResultsParser resultsParser = new TrxResultsParser(_testResultsFile);
 
+            //TODO: Temp hack. Need test name to house a useful identifier for the test run (e.g. git branch)
+            var testRunName = $"feature/task-packages - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
+
             // Add a TestRail test run for this instantiation
-            var testRunId = AddTestRun(resultsParser.TestName, _projectId).Result;
+            var testRunId = AddTestRun(testRunName, _projectId).Result;
 
             // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
             var testCases = (await GetTestCases(_sectionId)).ToList();

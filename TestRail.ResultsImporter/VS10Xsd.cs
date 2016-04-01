@@ -8,6 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using System;
+
 #pragma warning disable 1591
 namespace TestRail.ResultsImporter
 {
@@ -17997,6 +17999,7 @@ namespace TestRail.ResultsImporter
                 this.tcmPassIdFieldSpecified = value;
             }
         }
+
     }
 
     /// <remarks/>

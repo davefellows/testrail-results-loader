@@ -20,6 +20,8 @@ namespace TestRail.ResultsImporter
         /// </summary>
         public abstract string TestName { get; }
 
+        public abstract DateTime StartTime { get; }
+
         /// <summary>
         /// Returns a collection of tests that don't exist in TestRail (matching on test Title/Name).
         /// </summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -12,14 +13,40 @@ namespace TestRail.ResultsImporter
     {
         private readonly TestRunType _testRunType;
         private readonly IEnumerable<UnitTestResultType> _resultsFromReport;
+        private TestRunTypeTimes _testRunTimes;
 
         public TrxResultsParser(string filename)
         {
             _testRunType = LoadFile<TestRunType>(filename);
-            _resultsFromReport = GetResultItems();
+
+            // Parse Results collection and Times element from the report
+            var resultsType = new ResultsType();
+
+            foreach (var item in _testRunType.Items)
+            {
+                TypeSwitch.Switch(item,
+                    TypeSwitch.Case<ResultsType>((results) => resultsType = results),
+                    TypeSwitch.Case<TestRunTypeTimes>((results) => _testRunTimes = results));
+            }
+
+            _resultsFromReport = resultsType.Items.Select(item => (UnitTestResultType)item);
         }
 
         public override string TestName => _testRunType.name;
+
+        public override DateTime StartTime
+        {
+            get
+            {
+                DateTime start;
+                if (!DateTime.TryParse(_testRunTimes.start, out start))
+                {
+                    Log.Warn($"Failed to parse start datetime From Test Report. Value: {_testRunTimes.start}");
+                    return DateTime.MinValue;
+                }
+                return start;
+            }
+        } 
 
         public override IEnumerable<TestCase> GetMissingTests(IEnumerable<TestCase> existingTestCases)
         {
@@ -88,21 +115,6 @@ namespace TestRail.ResultsImporter
                    $"Error:\n{error}\n\n" +
                    $"Log:\n{stdout}";
         }
-
-
-        private IEnumerable<UnitTestResultType> GetResultItems()
-        {
-            var returnValue = new ResultsType();
-
-            foreach (var item in _testRunType.Items)
-            {
-                TypeSwitch.Switch(item,
-                    TypeSwitch.Case<ResultsType>((results) => returnValue = results));
-            }
-
-            return returnValue.Items.Select(item => (UnitTestResultType)item);
-        }
-
 
 
     }
