@@ -18,6 +18,10 @@ namespace TestRail.ResultsImporter
             Console.WriteLine($"Warn:  {message}");
         }
 
+        public static void Error(string message)
+        {
+            Console.WriteLine($"Error:  {message}");
+        }
 
         public static void Error(string message, Exception exception)
         {

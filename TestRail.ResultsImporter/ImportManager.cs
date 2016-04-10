@@ -13,17 +13,19 @@ using TestRail.ResultsImporter.TestRailModel;
 
 namespace TestRail.ResultsImporter
 {
+    using System.IO;
+
     internal class ImportManager
     {
+        private const string XUnitResultsFileExtension = ".trx";
+
         private static APIClient _client;
-        private readonly string _testResultsFile;
         private readonly int _projectId;
         private readonly int _sectionId;
 
 
-        public ImportManager(string testResultsFile, int projectId, int sectionId)
+        public ImportManager(string testResultsPath, int projectId, int sectionId)
         {
-            _testResultsFile = testResultsFile;
             _projectId = projectId;
             _sectionId = sectionId;
 
@@ -34,37 +36,50 @@ namespace TestRail.ResultsImporter
             };
         }
 
-        public async Task Run()
+        public async Task Run(string testResultsPath)
         {
-            ResultsParser resultsParser = new TrxResultsParser(_testResultsFile);
+            int testRunId = 0;
 
-            //TODO: Temp hack. Need test name to house a useful identifier for the test run (e.g. git branch)
-            var testRunName = $"origin/develop - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
+            var resultsFiles = Directory.GetFiles(testResultsPath, $"*{XUnitResultsFileExtension}");
 
-            // Add a TestRail test run for this instantiation
-            var testRunId = AddTestRun(testRunName, _projectId).Result;
-
-            // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
-            var testCases = (await GetTestCases(_sectionId)).ToList();
-
-            // Get only those tests that don't already exist in TestRail.
-            var missingTests = resultsParser.GetMissingTests(testCases).ToList();
-
-            if (missingTests.Any())
+            if (!resultsFiles.Any())
             {
-                // Add the missing test cases
-                await AddMissingTestCases(missingTests);
-
-                // Refresh list of test cases in TestRail
-                testCases = (await GetTestCases(_sectionId)).ToList();
+                Log.Error($"No {XUnitResultsFileExtension} results files in given path: {testResultsPath}");
             }
 
-            // Combine the Test report results with the Test Case id from TestRail
-            var testResultsWithCaseIds = resultsParser.GetTestResultsWithCaseIds(testCases);
+            foreach (string resultsFile in resultsFiles)
+            {
+                ResultsParser resultsParser = new TrxResultsParser(resultsFile);
 
+                if (testRunId == 0)
+                {
+                    //TODO: Temp hack. Need test name to contain a useful identifier for the test run (e.g. git branch)
+                    var testRunName = $"origin/develop - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
+                    // Add a TestRail test run for this instantiation
+                    testRunId = AddTestRun(testRunName, _projectId).Result;
+                }
+                
+                // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
+                var testCases = (await GetTestCases(_sectionId)).ToList();
 
-            // Add the test results to TestRail
-            await AddTestResults(testResultsWithCaseIds, testRunId);
+                // Get only those tests that don't already exist in TestRail.
+                var missingTests = resultsParser.GetMissingTests(testCases).ToList();
+
+                if (missingTests.Any())
+                {
+                    // Add the missing test cases
+                    await AddMissingTestCases(missingTests, _sectionId);
+
+                    // Refresh list of test cases in TestRail
+                    testCases = (await GetTestCases(_sectionId)).ToList();
+                }
+
+                // Combine the Test report results with the Test Case id from TestRail
+                var testResultsWithCaseIds = resultsParser.GetTestResultsWithCaseIds(testCases);
+
+                // Add the test results to TestRail
+                await AddTestResults(testResultsWithCaseIds, testRunId);
+            }
         }
 
 
@@ -91,9 +106,9 @@ namespace TestRail.ResultsImporter
             }
         }
 
-        private static async Task AddMissingTestCases(IEnumerable<TestCase> missingTests)
+        private static async Task AddMissingTestCases(IEnumerable<TestCase> missingTests, int sectionId)
         {
-            var tasks = missingTests.Select(AddTestCase);
+            var tasks = missingTests.Select(test => AddTestCase(test, sectionId));
             await Task.WhenAll(tasks);
         }
 
@@ -135,7 +150,11 @@ namespace TestRail.ResultsImporter
             try
             {
                 var response = await _client.SendPost("add_run/" + projectId, testRun);
-                return (int)((JObject)response)["id"];
+                var testRunId = (int)((JObject)response)["id"];
+
+                Log.Info($"Added Test Run: {testRunId}");
+
+                return testRunId;
             }
             catch (Exception ex)
             {

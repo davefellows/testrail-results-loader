@@ -9,13 +9,13 @@
     <Properties />
   </TestSettings>
   <Results>
-    <UnitTestResult executionId="1d7d1ac5-2a33-4059-a84d-2a2840fe75d5" testId="a5511e8a-b281-4821-870a-e531b0a8759d" testName="GetAvailableActions" computerName="RD00155D44C34F" duration="00:00:02.5590000" startTime="2016-03-15T09:55:33.6052389+00:00" endTime="2016-03-15T09:55:33.6052389+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1d7d1ac5-2a33-4059-a84d-2a2840fe75d5">
+    <UnitTestResult executionId="1d7d1ac5-2a33-4059-a84d-2a2840fe75d5" testId="a5511e8a-b281-4821-870a-e531b0a8759d" testName="AA-TEST-1" computerName="RD00155D44C34F" duration="00:00:02.5590000" startTime="2016-03-15T09:55:33.6052389+00:00" endTime="2016-03-15T09:55:33.6052389+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1d7d1ac5-2a33-4059-a84d-2a2840fe75d5">
       <Output>
         <StdOut>3/15/2016 9:55:30 AM:TRPFEAPITests, Version=8.5.0.0, Culture=neutral, PublicKeyToken=null: Assembly Init
 3/15/2016 9:55:32 AM:SubscriptionTests5: Class Cleanup</StdOut>
       </Output>
     </UnitTestResult>
-    <UnitTestResult executionId="5c671831-f948-4f70-ba75-e201d14e20e9" testId="8bba7360-1968-4502-89c0-3be90fad1f1b" testName="ListOperations" computerName="RD00155D44C34F" duration="00:00:02.6440000" startTime="2016-03-15T09:55:33.6222411+00:00" endTime="2016-03-15T09:55:33.6222411+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5c671831-f948-4f70-ba75-e201d14e20e9">
+    <UnitTestResult executionId="5c671831-f948-4f70-ba75-e201d14e20e9" testId="8bba7360-1968-4502-89c0-3be90fad1f1b" testName="AA-TEST-2" computerName="RD00155D44C34F" duration="00:00:02.6440000" startTime="2016-03-15T09:55:33.6222411+00:00" endTime="2016-03-15T09:55:33.6222411+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5c671831-f948-4f70-ba75-e201d14e20e9">
       <Output>
         <StdOut>3/15/2016 9:55:30 AM:TRPFEAPITests, Version=8.5.0.0, Culture=neutral, PublicKeyToken=null: Assembly Init
 3/15/2016 9:55:32 AM:
