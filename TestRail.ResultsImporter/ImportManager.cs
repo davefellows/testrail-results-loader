@@ -39,7 +39,7 @@ namespace TestRail.ResultsImporter
             ResultsParser resultsParser = new TrxResultsParser(_testResultsFile);
 
             //TODO: Temp hack. Need test name to house a useful identifier for the test run (e.g. git branch)
-            var testRunName = $"feature/task-packages - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
+            var testRunName = $"origin/develop - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
 
             // Add a TestRail test run for this instantiation
             var testRunId = AddTestRun(testRunName, _projectId).Result;
