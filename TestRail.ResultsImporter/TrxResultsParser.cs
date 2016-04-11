@@ -17,7 +17,8 @@ namespace TestRail.ResultsImporter
 
         public TrxResultsParser(string filename)
         {
-            _testRunType = LoadFile<TestRunType>(filename);
+            // Deserialize
+            _testRunType = DeserializeFile<TestRunType>(filename);
 
             // Parse Results collection and Times element from the report
             var resultsType = new ResultsType();
@@ -71,20 +72,20 @@ namespace TestRail.ResultsImporter
                         CaseId = testcase.Id,
                         StatusId = testResult.outcome == TestOutcome.Passed.ToString() ? 1 : 5,
                         Elapsed = FormatDuration(testResult.duration),
-                        Comment = FormatDatesAndStdout(testResult)
+                        Comment = ExtractDatesAndStdoutError(testResult)
                     };
 
         }
 
-        private static string FormatDatesAndStdout(UnitTestResultType resultItem)
+        private static string ExtractDatesAndStdoutError(UnitTestResultType resultItem)
         {
+            if (resultItem == null) throw new ArgumentNullException(nameof(resultItem));
 
             string error = string.Empty, stdout = string.Empty;
 
             // Some items don't contain either Log or Error
             if (resultItem.Items != null)
             {
-
                 // extract error if available
                 try
                 {

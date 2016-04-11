@@ -15,9 +15,6 @@ namespace TestRail.ResultsImporter
     /// </summary>
     internal abstract class ResultsParser
     {
-        /// <summary>
-        /// Name/Title for the Test run
-        /// </summary>
         public abstract string TestName { get; }
 
         public abstract DateTime StartTime { get; }
@@ -25,28 +22,27 @@ namespace TestRail.ResultsImporter
         /// <summary>
         /// Returns a collection of tests that don't exist in TestRail (matching on test Title/Name).
         /// </summary>
-        /// <param name="existingTestCases">Existing tests in TestRail</param>
         public abstract IEnumerable<TestCase> GetMissingTests(IEnumerable<TestCase> existingTestCases);
 
         /// <summary>
         /// Returns a collection of test results with the TestRail case Id added to the results.
         /// </summary>
-        /// <param name="existingTestCases">Existing tests in TestRail</param>
         public abstract IEnumerable<TestResult> GetTestResultsWithCaseIds(IEnumerable<TestCase> existingTestCases);
 
-        protected static T LoadFile<T>(string xmlPath, XmlReaderSettings settings = null)
+
+        protected static T DeserializeFile<T>(string xmlPath)
         {
             string xmlString = File.ReadAllText(xmlPath);
-            return DeSerialize<T>(xmlString, settings);
+            return Deserialize<T>(xmlString);
         }
 
-        protected static T DeSerialize<T>(string inputString, XmlReaderSettings settings = null)
+        protected static T Deserialize<T>(string inputString)
         {
             var serializer = new XmlSerializer(typeof(T));
             using (var stringReader = new StringReader(inputString))
             {
                 // Read the object as XML string.
-                using (var rd = XmlReader.Create(stringReader, settings))
+                using (var rd = XmlReader.Create(stringReader))
                 {
                     return (T)serializer.Deserialize(rd);
                 }
@@ -60,19 +56,18 @@ namespace TestRail.ResultsImporter
         {
             var t = TimeSpan.Parse(duration);
 
-            var elapsed = String.Empty;
-
             // Time resolution in TestRail is down to seconds so if less than
             // 1 second then show 1 second rather than blank.
-            if (t.TotalSeconds < 1) elapsed = "1s";
-            else
-            {
-                if (t.Hours > 0) elapsed += $"{t.Hours}h ";
-                if (t.Minutes > 0) elapsed += $"{t.Minutes}m ";
-                if (t.Seconds > 0) elapsed += $"{t.Seconds}s";
-            }
+            if (t.TotalSeconds < 1)
+                return "1s";
 
-            return elapsed;
+            return new StringBuilder()
+                .AppendWhen(t.Hours > 0, $"{t.Hours}h ")
+                .AppendWhen(t.Minutes > 0, $"{t.Minutes}m ")
+                .AppendWhen(t.Seconds > 0, $"{t.Seconds}s")
+                .ToString();
+            
         }
+
     }
 }

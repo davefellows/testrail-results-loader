@@ -7,33 +7,35 @@ namespace TestRail.ResultsImporter
 
     class Program
     {
-        private static string _testResultsPath = ".";
         private const int ProjectId = 1;
         private const int SectionId = 2;
 
         static int Main(string[] args)
         {
 
-            if (args.Length > 0)
+            if (args.Length < 2)
             {
-                _testResultsPath = args[0];
-                if (!Directory.Exists(_testResultsPath))
-                {
-                    Log.Error($"Supplied directory doesn't exist or is invalid: {_testResultsPath}");
-                    return 1;
-                }
-                Log.Info($"Processing file: {_testResultsPath}");
+                Log.Error("Expected args missing. Expect folder path to the results files and the test run name (e.g. branch + build #).");
             }
-            else
+
+
+            string testResultsPath = args[0];
+
+            if (!Directory.Exists(testResultsPath))
             {
-                Log.Warn($"No file argument passed. Using test path: {_testResultsPath}");
+                Log.Error($"Supplied directory doesn't exist or is invalid: {testResultsPath}");
+                return 1;
             }
+            Log.Info($"Processing file: {testResultsPath}");
+
+
+            string branchAndBuildLabel = args[1];
 
             try
             {
                 Task.Run(async () =>
                 {
-                    await new ImportManager(_testResultsPath, ProjectId, SectionId).Run(_testResultsPath);
+                    await new ImportManager(ProjectId, SectionId).Run(testResultsPath, branchAndBuildLabel);
                 }).GetAwaiter().GetResult();
             }
             catch (Exception ex)

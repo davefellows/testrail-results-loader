@@ -24,7 +24,7 @@ namespace TestRail.ResultsImporter
         private readonly int _sectionId;
 
 
-        public ImportManager(string testResultsPath, int projectId, int sectionId)
+        public ImportManager(int projectId, int sectionId)
         {
             _projectId = projectId;
             _sectionId = sectionId;
@@ -36,7 +36,7 @@ namespace TestRail.ResultsImporter
             };
         }
 
-        public async Task Run(string testResultsPath)
+        public async Task Run(string testResultsPath, string branchAndBuildLabel)
         {
             int testRunId = 0;
 
@@ -53,8 +53,7 @@ namespace TestRail.ResultsImporter
 
                 if (testRunId == 0)
                 {
-                    //TODO: Temp hack. Need test name to contain a useful identifier for the test run (e.g. git branch)
-                    var testRunName = $"origin/develop - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
+                    var testRunName = $"{branchAndBuildLabel} - {resultsParser.StartTime.ToString(new CultureInfo("en-US"))}";
                     // Add a TestRail test run for this instantiation
                     testRunId = AddTestRun(testRunName, _projectId).Result;
                 }
@@ -62,7 +61,7 @@ namespace TestRail.ResultsImporter
                 // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
                 var testCases = (await GetTestCases(_sectionId)).ToList();
 
-                // Get only those tests that don't already exist in TestRail.
+                // Get only those tests that don't already exist in TestRail. 
                 var missingTests = resultsParser.GetMissingTests(testCases).ToList();
 
                 if (missingTests.Any())
