@@ -111,7 +111,7 @@ namespace TestRail.ResultsImporter
             await Task.WhenAll(tasks);
         }
 
-        private static async Task AddTestCase(TestCase testCase, int sectionId)
+        internal static async Task AddTestCase(TestCase testCase, int sectionId)
         {
             try
             {
