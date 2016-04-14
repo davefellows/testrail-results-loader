@@ -6,27 +6,32 @@ using System.Threading.Tasks;
 
 namespace TestRail.ResultsImporter
 {
+    using System.Diagnostics;
+
     public class Log
     {
         public static void Info(string message)
         {
             //TODO Where should we log? Stdout is probably the best option
             Console.WriteLine($"Info:  {message}");
+            Debug.WriteLine($"Info:  {message}");
         }
         public static void Warn(string message)
         {
             Console.WriteLine($"Warn:  {message}");
+            Debug.WriteLine($"Warn:  {message}");
         }
 
         public static void Error(string message)
         {
-            Console.WriteLine($"Error:  {message}");
+            Console.Error.WriteLine($"Error:  {message}");
+            Debug.WriteLine($"Error:  {message}");
         }
 
         public static void Error(string message, Exception exception)
         {
-            //TODO Use better exception expansion
-            Console.WriteLine($"Error: {message}\n\n{exception.ToString()}");
+            Console.Error.WriteLine($"Error: {message}\n\n{exception}");
+            Debug.WriteLine($"Error: {message}\n\n{exception}");
         }
     }
 }
