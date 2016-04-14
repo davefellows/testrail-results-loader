@@ -21,13 +21,11 @@ namespace TestRail.ResultsImporter
 
         private static APIClient _client;
         private readonly int _projectId;
-        private readonly int _sectionId;
 
 
-        public ImportManager(int projectId, int sectionId)
+        public ImportManager(int projectId)
         {
             _projectId = projectId;
-            _sectionId = sectionId;
 
             _client = new APIClient(ConfigurationManager.AppSettings["testrail-endpoint"])
             {
@@ -60,8 +58,11 @@ namespace TestRail.ResultsImporter
                     testRunId = AddTestRun(testRunName, _projectId).Result;
                 }
                 
+                // Get the TestRail section based on the test dll name
+                int sectionId = await GetOrCreateTestSection(resultsParser.FileName);
+
                 // Retrieve all existing "unit test" test cases from TestRail (for Azure Batch project)
-                var testCases = (await GetTestCases(_sectionId)).ToList();
+                var testCases = (await GetTestCases(sectionId)).ToList();
 
                 // Get only those tests that don't already exist in TestRail. 
                 var missingTests = resultsParser.GetMissingTests(testCases).ToList();
@@ -71,10 +72,10 @@ namespace TestRail.ResultsImporter
                 if (missingTests.Any())
                 {
                     // Add the missing test cases
-                    await AddMissingTestCases(missingTests);
+                    await AddMissingTestCases(missingTests, sectionId);
 
                     // Refresh list of test cases in TestRail
-                    testCases = (await GetTestCases(_sectionId)).ToList();
+                    testCases = (await GetTestCases(sectionId)).ToList();
                 }
 
                 // Combine the Test report results with the Test Case id from TestRail
@@ -88,13 +89,59 @@ namespace TestRail.ResultsImporter
             }
         }
 
+        private async Task<int> GetOrCreateTestSection(string testProjectName)
+        {
+            return await GetTestSection(testProjectName) ?? await CreateTestSection(testProjectName);
+        }
+
+        private async Task<int> CreateTestSection(string testProjectName)
+        {
+            try
+            {
+                var sectionId =
+                    (int)
+                    ((JObject)
+                     await _client.SendPost("add_section/" + _projectId, new Section { Name = testProjectName }))["id"];
+
+                Log.Info($"Added Section: '{testProjectName}' id: '{sectionId}'");
+
+                return sectionId;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error adding TestRail Section '{testProjectName}' for Project '{_projectId}'", ex);
+                throw;
+            }
+        }
+        private async Task<int?> GetTestSection(string testProjectName)
+        {
+            try
+            {
+                // Retrieve all existing test Sections for this project
+                var sectionsResponse = (JArray)await _client.SendGet("get_sections/" + _projectId);
+
+                var sectionsList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(sectionsResponse.ToString());
+
+                if (!sectionsList.Exists(section => (string)section["name"] == testProjectName)) return null;
+
+                //TODO: Project onto Sections collection and cache
+                return
+                    sectionsList.Where(section => (string)section["name"] == testProjectName)
+                        .Select(section => int.Parse(section["id"].ToString())).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting TestRail Section: '{testProjectName}' for Project Id: '{_projectId}'.", ex);
+                throw;
+            }
+        }
 
         private async Task<IEnumerable<TestCase>> GetTestCases(int sectionId)
         {
             try
             {
                 // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
-                var testCasesResponse = (JArray)await _client.SendGet("get_cases/1&section_id=" + sectionId);
+                var testCasesResponse = (JArray)await _client.SendGet($"get_cases/{_projectId}&section_id={sectionId}");
 
                 var testCasesList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
 
@@ -112,22 +159,23 @@ namespace TestRail.ResultsImporter
             }
         }
 
-        private async Task AddMissingTestCases(IEnumerable<TestCase> missingTests)
+        private async Task AddMissingTestCases(IEnumerable<TestCase> missingTests, int sectionId)
         {
-            var tasks = missingTests.Select(AddTestCase);
+            var tasks = missingTests.Select(test => AddTestCase(test, sectionId));
             await Task.WhenAll(tasks);
         }
 
-        internal async Task AddTestCase(TestCase testCase)
+        internal async Task AddTestCase(TestCase testCase, int sectionId)
         {
             try
             {
-                await _client.SendPost("add_case/" + _sectionId, testCase);
+                await _client.SendPost("add_case/" + sectionId, testCase);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error adding TestRail Test Case '{testCase.Title}' to Section Id '{_sectionId}'.", ex);
-                throw;
+                Log.Error($"Error adding TestRail Test Case '{testCase.Title}' to Section Id '{sectionId}'.", ex);
+                //TODO: Determine how to handle failures here. Or do we just truncate for now?
+                //throw;
             }
         }
 
@@ -155,8 +203,7 @@ namespace TestRail.ResultsImporter
 
             try
             {
-                var response = await _client.SendPost("add_run/" + projectId, testRun);
-                var testRunId = (int)((JObject)response)["id"];
+                var testRunId = (int)((JObject)await _client.SendPost("add_run/" + projectId, testRun))["id"];
 
                 Log.Info($"Added Test Run: {testRunId}");
 

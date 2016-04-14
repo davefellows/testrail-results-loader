@@ -7,8 +7,7 @@ namespace TestRail.ResultsImporter
 
     class Program
     {
-        private const int ProjectId = 1;
-        private const int SectionId = 2;
+        private const int ProjectId = 2; // Test Project
 
         static int Main(string[] args)
         {
@@ -33,7 +32,7 @@ namespace TestRail.ResultsImporter
             {
                 Task.Run(async () =>
                 {
-                    await new ImportManager(ProjectId, SectionId).Run(testResultsPath, branchAndBuildLabel);
+                    await new ImportManager(ProjectId).Run(testResultsPath, branchAndBuildLabel);
                 }).GetAwaiter().GetResult();
             }
             catch (Exception ex)

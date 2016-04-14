@@ -13,7 +13,7 @@ namespace TestRail.ResultsImporter.IntegrationTests
         [Fact]
         public async Task TestCanAddNewTestCase()
         {
-            await new ImportManager(ProjectId, SectionId).AddTestCase(new TestCase { Title = new string('A', 251) });
+            await new ImportManager(ProjectId).AddTestCase(new TestCase { Title = new string('A', 251) }, SectionId);
         }
     }
 }

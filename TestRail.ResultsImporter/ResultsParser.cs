@@ -17,6 +17,8 @@ namespace TestRail.ResultsImporter
     {
         public abstract string TestName { get; }
 
+        public abstract string FileName { get; }
+
         public abstract DateTime StartTime { get; }
 
         /// <summary>

@@ -36,29 +36,29 @@ namespace TestRail.ResultsImporter
         private object[] itemsField;
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Command", typeof(GenericTestTypeCommand))]
-        [System.Xml.Serialization.XmlElementAttribute("SummaryXmlFile", typeof(GenericTestTypeSummaryXmlFile))]
-        [System.Xml.Serialization.XmlElementAttribute("Agent", typeof(BaseTestTypeAgent))]
-        [System.Xml.Serialization.XmlElementAttribute("Css", typeof(BaseTestTypeCss))]
-        [System.Xml.Serialization.XmlElementAttribute("DeploymentItems", typeof(BaseTestTypeDeploymentItems))]
-        [System.Xml.Serialization.XmlElementAttribute("Description", typeof(object))]
-        [System.Xml.Serialization.XmlElementAttribute("Execution", typeof(BaseTestTypeExecution))]
-        [System.Xml.Serialization.XmlElementAttribute("Owners", typeof(BaseTestTypeOwners))]
-        [System.Xml.Serialization.XmlElementAttribute("Properties", typeof(BaseTestTypeProperties))]
-        [System.Xml.Serialization.XmlElementAttribute("TcmInformation", typeof(TcmInformationType))]
-        [System.Xml.Serialization.XmlElementAttribute("TestCategory", typeof(BaseTestTypeTestCategory))]
-        [System.Xml.Serialization.XmlElementAttribute("WorkItemIDs", typeof(WorkItemIDsType))]
-        public new object[] Items
-        {
-            get
-            {
-                return this.itemsField;
-            }
-            set
-            {
-                this.itemsField = value;
-            }
-        }
+        //[System.Xml.Serialization.XmlElementAttribute("Command", typeof(GenericTestTypeCommand))]
+        //[System.Xml.Serialization.XmlElementAttribute("SummaryXmlFile", typeof(GenericTestTypeSummaryXmlFile))]
+        //[System.Xml.Serialization.XmlElementAttribute("Agent", typeof(BaseTestTypeAgent))]
+        //[System.Xml.Serialization.XmlElementAttribute("Css", typeof(BaseTestTypeCss))]
+        //[System.Xml.Serialization.XmlElementAttribute("DeploymentItems", typeof(BaseTestTypeDeploymentItems))]
+        //[System.Xml.Serialization.XmlElementAttribute("Description", typeof(object))]
+        //[System.Xml.Serialization.XmlElementAttribute("Execution", typeof(BaseTestTypeExecution))]
+        //[System.Xml.Serialization.XmlElementAttribute("Owners", typeof(BaseTestTypeOwners))]
+        //[System.Xml.Serialization.XmlElementAttribute("Properties", typeof(BaseTestTypeProperties))]
+        //[System.Xml.Serialization.XmlElementAttribute("TcmInformation", typeof(TcmInformationType))]
+        //[System.Xml.Serialization.XmlElementAttribute("TestCategory", typeof(BaseTestTypeTestCategory))]
+        //[System.Xml.Serialization.XmlElementAttribute("WorkItemIDs", typeof(WorkItemIDsType))]
+        //public new object[] Items
+        //{
+        //    get
+        //    {
+        //        return this.itemsField;
+        //    }
+        //    set
+        //    {
+        //        this.itemsField = value;
+        //    }
+        //}
     }
 
     /// <remarks/>
@@ -13425,27 +13425,27 @@ namespace TestRail.ResultsImporter
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Agent", typeof(BaseTestTypeAgent))]
-        [System.Xml.Serialization.XmlElementAttribute("Css", typeof(BaseTestTypeCss))]
-        [System.Xml.Serialization.XmlElementAttribute("DeploymentItems", typeof(BaseTestTypeDeploymentItems))]
-        [System.Xml.Serialization.XmlElementAttribute("Description", typeof(object))]
-        [System.Xml.Serialization.XmlElementAttribute("Execution", typeof(BaseTestTypeExecution))]
-        [System.Xml.Serialization.XmlElementAttribute("Owners", typeof(BaseTestTypeOwners))]
-        [System.Xml.Serialization.XmlElementAttribute("Properties", typeof(BaseTestTypeProperties))]
-        [System.Xml.Serialization.XmlElementAttribute("TcmInformation", typeof(TcmInformationType))]
-        [System.Xml.Serialization.XmlElementAttribute("TestCategory", typeof(BaseTestTypeTestCategory))]
-        [System.Xml.Serialization.XmlElementAttribute("WorkItemIDs", typeof(WorkItemIDsType))]
-        public object[] Items
-        {
-            get
-            {
-                return this.itemsField;
-            }
-            set
-            {
-                this.itemsField = value;
-            }
-        }
+        //[System.Xml.Serialization.XmlElementAttribute("Agent", typeof(BaseTestTypeAgent))]
+        //[System.Xml.Serialization.XmlElementAttribute("Css", typeof(BaseTestTypeCss))]
+        //[System.Xml.Serialization.XmlElementAttribute("DeploymentItems", typeof(BaseTestTypeDeploymentItems))]
+        //[System.Xml.Serialization.XmlElementAttribute("Description", typeof(object))]
+        //[System.Xml.Serialization.XmlElementAttribute("Execution", typeof(BaseTestTypeExecution))]
+        //[System.Xml.Serialization.XmlElementAttribute("Owners", typeof(BaseTestTypeOwners))]
+        //[System.Xml.Serialization.XmlElementAttribute("Properties", typeof(BaseTestTypeProperties))]
+        //[System.Xml.Serialization.XmlElementAttribute("TcmInformation", typeof(TcmInformationType))]
+        //[System.Xml.Serialization.XmlElementAttribute("TestCategory", typeof(BaseTestTypeTestCategory))]
+        //[System.Xml.Serialization.XmlElementAttribute("WorkItemIDs", typeof(WorkItemIDsType))]
+        //public object[] Items
+        //{ 
+        //    get
+        //    {
+        //        return this.itemsField;
+        //    }
+        //    set
+        //    {
+        //        this.itemsField = value;
+        //    }
+        //}
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -17911,7 +17911,7 @@ namespace TestRail.ResultsImporter
         [System.Xml.Serialization.XmlElementAttribute("Build", typeof(TestRunTypeBuild))]
         [System.Xml.Serialization.XmlElementAttribute("ResultSummary", typeof(TestRunTypeResultSummary))]
         [System.Xml.Serialization.XmlElementAttribute("Results", typeof(ResultsType))]
-        //[System.Xml.Serialization.XmlElementAttribute("TestDefinitions", typeof(TestRunTypeTestDefinitions))]
+        [System.Xml.Serialization.XmlElementAttribute("TestDefinitions", typeof(TestRunTypeTestDefinitions))]
         [System.Xml.Serialization.XmlElementAttribute("TestEntries", typeof(TestEntriesType1))]
         [System.Xml.Serialization.XmlElementAttribute("TestLists", typeof(TestRunTypeTestLists))]
         [System.Xml.Serialization.XmlElementAttribute("TestRunConfiguration", typeof(TestRunConfiguration))]
