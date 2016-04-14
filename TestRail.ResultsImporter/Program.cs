@@ -7,8 +7,11 @@ namespace TestRail.ResultsImporter
 
     class Program
     {
-        private const int ProjectId = 1;
-        private const int SectionId = 2;
+        //TODO: retrieve project id from testrail
+        private const int ProjectId = 2; // test project
+        //TODO: create and retrieve section ids for each group of tests
+        //private const int SectionId = 2;
+        private const int SectionId = 5;
 
         static int Main(string[] args)
         {
