@@ -49,6 +49,8 @@ namespace TestRail.ResultsImporter
 
             foreach (string resultsFile in resultsFiles)
             {
+                Log.Info($"Importing file: {resultsFile}");
+
                 ResultsParser resultsParser = new TrxResultsParser(resultsFile);
 
                 if (testRunId == 0)
@@ -64,10 +66,12 @@ namespace TestRail.ResultsImporter
                 // Get only those tests that don't already exist in TestRail. 
                 var missingTests = resultsParser.GetMissingTests(testCases).ToList();
 
+                Log.Info($"Missing Test Cases: {missingTests.Count}");
+
                 if (missingTests.Any())
                 {
                     // Add the missing test cases
-                    await AddMissingTestCases(missingTests, _sectionId);
+                    await AddMissingTestCases(missingTests);
 
                     // Refresh list of test cases in TestRail
                     testCases = (await GetTestCases(_sectionId)).ToList();
@@ -78,11 +82,14 @@ namespace TestRail.ResultsImporter
 
                 // Add the test results to TestRail
                 await AddTestResults(testResultsWithCaseIds, testRunId);
+
+                Log.Info($"Finished file: {resultsFile}");
+
             }
         }
 
 
-        private static async Task<IEnumerable<TestCase>> GetTestCases(int sectionId)
+        private async Task<IEnumerable<TestCase>> GetTestCases(int sectionId)
         {
             try
             {
@@ -105,26 +112,26 @@ namespace TestRail.ResultsImporter
             }
         }
 
-        private static async Task AddMissingTestCases(IEnumerable<TestCase> missingTests, int sectionId)
+        private async Task AddMissingTestCases(IEnumerable<TestCase> missingTests)
         {
-            var tasks = missingTests.Select(test => AddTestCase(test, sectionId));
+            var tasks = missingTests.Select(AddTestCase);
             await Task.WhenAll(tasks);
         }
 
-        internal static async Task AddTestCase(TestCase testCase, int sectionId)
+        internal async Task AddTestCase(TestCase testCase)
         {
             try
             {
-                await _client.SendPost("add_case/" + sectionId, testCase);
+                await _client.SendPost("add_case/" + _sectionId, testCase);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error adding TestRail Test Cases {testCase.Title} to Section Id '{sectionId}'.", ex);
+                Log.Error($"Error adding TestRail Test Case '{testCase.Title}' to Section Id '{_sectionId}'.", ex);
                 throw;
             }
         }
 
-        private static async Task AddTestResults(IEnumerable<TestResult> testResultsToAdd, int testRunId)
+        private async Task AddTestResults(IEnumerable<TestResult> testResultsToAdd, int testRunId)
         {
             var testResults = new TestResults
             {
@@ -142,7 +149,7 @@ namespace TestRail.ResultsImporter
             }
         }
 
-        private static async Task<int> AddTestRun(string testRunName, int projectId)
+        private async Task<int> AddTestRun(string testRunName, int projectId)
         {
             var testRun = new TestRun { Name = testRunName };
 

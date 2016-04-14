@@ -15,13 +15,11 @@ namespace TestRail.ResultsImporter
 
         static int Main(string[] args)
         {
-
             if (args.Length < 2)
             {
                 Log.Error("Expected args missing. Expect folder path to the results files and the test run name (e.g. branch + build #).");
             }
-
-
+            
             string testResultsPath = args[0];
 
             if (!Directory.Exists(testResultsPath))
@@ -29,10 +27,10 @@ namespace TestRail.ResultsImporter
                 Log.Error($"Supplied directory doesn't exist or is invalid: {testResultsPath}");
                 return 1;
             }
-            Log.Info($"Processing file: {testResultsPath}");
-
 
             string branchAndBuildLabel = args[1];
+
+            Log.Info($"Processing path: '{testResultsPath}' for branch/build: '{branchAndBuildLabel}'");
 
             try
             {
