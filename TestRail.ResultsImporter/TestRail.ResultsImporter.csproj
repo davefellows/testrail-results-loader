@@ -55,6 +55,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultsParser.cs" />
+    <Compile Include="TestRailModel\Section.cs" />
     <Compile Include="TestRailModel\TestCase.cs" />
     <Compile Include="TestRailModel\TestResult.cs" />
     <Compile Include="TestRailModel\TestResults.cs" />

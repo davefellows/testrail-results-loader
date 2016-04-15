@@ -9,9 +9,6 @@ namespace TestRail.ResultsImporter
     {
         //TODO: retrieve project id from testrail
         private const int ProjectId = 2; // test project
-        //TODO: create and retrieve section ids for each group of tests
-        //private const int SectionId = 2;
-        private const int SectionId = 5;
 
         static int Main(string[] args)
         {
@@ -36,7 +33,7 @@ namespace TestRail.ResultsImporter
             {
                 Task.Run(async () =>
                 {
-                    await new ImportManager(ProjectId, SectionId).Run(testResultsPath, branchAndBuildLabel);
+                    await new ImportManager(ProjectId).Run(testResultsPath, branchAndBuildLabel);
                 }).GetAwaiter().GetResult();
             }
             catch (Exception ex)

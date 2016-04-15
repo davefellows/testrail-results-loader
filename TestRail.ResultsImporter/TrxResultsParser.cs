@@ -9,6 +9,8 @@ using TestRail.ResultsImporter.TestRailModel;
 
 namespace TestRail.ResultsImporter
 {
+    using System.IO;
+
     internal class TrxResultsParser : ResultsParser
     {
         private readonly TestRunType _testRunType;
@@ -22,18 +24,30 @@ namespace TestRail.ResultsImporter
 
             // Parse Results collection and Times element from the report
             var resultsType = new ResultsType();
+            var testDefinitions = new TestRunTypeTestDefinitions();
 
             foreach (var item in _testRunType.Items)
             {
                 TypeSwitch.Switch(item,
                     TypeSwitch.Case<ResultsType>((results) => resultsType = results),
-                    TypeSwitch.Case<TestRunTypeTimes>((results) => _testRunTimes = results));
+                    TypeSwitch.Case<TestRunTypeTimes>((results) => _testRunTimes = results),
+                    TypeSwitch.Case<TestRunTypeTestDefinitions>((results) => testDefinitions = results)
+                    );
             }
 
             _resultsFromReport = resultsType.Items.Select(item => (UnitTestResultType)item);
+
+            // Extract the codebase (name of DLL from the first record)
+            FileName =
+                Path.GetFileNameWithoutExtension(
+                    testDefinitions.Items[0] == null
+                        ? string.Empty
+                        : ((UnitTestType)testDefinitions.Items[0]).TestMethod.codeBase);
         }
 
         public override string TestName => _testRunType.name;
+
+        public override string FileName { get; }
 
         public override DateTime StartTime
         {
