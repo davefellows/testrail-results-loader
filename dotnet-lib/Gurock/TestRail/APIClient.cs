@@ -22,8 +22,8 @@ namespace Gurock.TestRail
 {
     using System.Diagnostics.Eventing.Reader;
 
-    public class APIClient
-	{
+    public class APIClient : IApiClient
+    {
 		private string m_user;
 		private string m_password;
 		private string m_url;

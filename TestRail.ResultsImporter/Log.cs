@@ -12,7 +12,6 @@ namespace TestRail.ResultsImporter
     {
         public static void Info(string message)
         {
-            //TODO Where should we log? Stdout is probably the best option
             Console.WriteLine($"Info:  {message}");
             Debug.WriteLine($"Info:  {message}");
         }
@@ -32,6 +31,12 @@ namespace TestRail.ResultsImporter
         {
             Console.Error.WriteLine($"Error: {message}\n\n{exception}");
             Debug.WriteLine($"Error: {message}\n\n{exception}");
+        }
+
+        public static void Error(Exception exception)
+        {
+            Console.Error.WriteLine($"Error:\n\n{exception}");
+            Debug.WriteLine($"Error:\n\n{exception}");
         }
     }
 }

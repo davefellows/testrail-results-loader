@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.SessionState;
@@ -19,19 +20,14 @@ namespace TestRail.ResultsImporter
     {
         private const string XUnitResultsFileExtension = ".trx";
 
-        private static APIClient _client;
+        private static IApiClient _client;
         private readonly int _projectId;
 
 
-        public ImportManager(int projectId)
+        public ImportManager(IApiClient client, int projectId)
         {
             _projectId = projectId;
-
-            _client = new APIClient(ConfigurationManager.AppSettings["testrail-endpoint"])
-            {
-                User = ConfigurationManager.AppSettings["username"],
-                Password = ConfigurationManager.AppSettings["password"]
-            };
+            _client = client;
         }
 
         public async Task Run(string testResultsPath, string branchAndBuildLabel)
@@ -122,7 +118,8 @@ namespace TestRail.ResultsImporter
                 // Retrieve all existing test Sections for this project
                 var sectionsResponse = (JArray)await _client.SendGet("get_sections/" + _projectId);
 
-                var sectionsList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(sectionsResponse.ToString());
+                var sectionsList =
+                    JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(sectionsResponse.ToString());
 
                 if (!sectionsList.Exists(section => (string)section["name"] == testProjectName)) return null;
 
@@ -131,8 +128,16 @@ namespace TestRail.ResultsImporter
                     sectionsList.Where(section => (string)section["name"] == testProjectName)
                         .Select(section => int.Parse(section["id"].ToString())).FirstOrDefault();
             }
-            catch (Exception ex)
+            catch (AggregateException ex)
             {
+
+                var message = new StringBuilder();
+
+                foreach (var iex in ex.InnerExceptions)
+                {
+                    var bcex = iex as WebException;
+                    message.AppendLine(bcex?.Status.ToString() ?? iex.ToString());
+                }
                 Log.Error($"Error getting TestRail Section: '{testProjectName}' for Project Id: '{_projectId}'.", ex);
                 throw;
             }
@@ -143,9 +148,10 @@ namespace TestRail.ResultsImporter
             try
             {
                 // Retrieve all existing unit test cases from TestRail (for Azure Batch project)
-                var testCasesResponse = (JArray)await _client.SendGet($"get_cases/{_projectId}&section_id={sectionId}");
+                var testCasesResponse = (JArray) await _client.SendGet($"get_cases/{_projectId}&section_id={sectionId}");
 
-                var testCasesList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
+                var testCasesList =
+                    JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(testCasesResponse.ToString());
 
                 return testCasesList.Select(
                     test => new TestCase

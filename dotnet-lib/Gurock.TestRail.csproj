@@ -64,6 +64,7 @@
     <Compile Include="Gurock\TestRail\APIClient.cs" />
     <Compile Include="Gurock\TestRail\APIException.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Gurock\TestRail\IApiClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
