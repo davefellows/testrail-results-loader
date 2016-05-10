@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Configuration;
 using System.Threading.Tasks;
+using Gurock.TestRail;
+using TestRail.ResultsImporter.TestRailModel;
 
 namespace TestRail.ResultsImporter
 {
@@ -14,34 +17,53 @@ namespace TestRail.ResultsImporter
         {
             if (args.Length < 2)
             {
-                Log.Error("Expected args missing. Expect folder path to the results files and the test run name (e.g. branch + build #).");
+                Log.Error("Expected args missing. Expect folder path to the results files, and the test run name (e.g. branch + build #).");
             }
-            
-            string testResultsPath = args[0];
-
-            if (!Directory.Exists(testResultsPath))
-            {
-                Log.Error($"Supplied directory doesn't exist or is invalid: {testResultsPath}");
-                return 1;
-            }
-
-            string branchAndBuildLabel = args[1];
-
-            Log.Info($"Processing path: '{testResultsPath}' for branch/build: '{branchAndBuildLabel}'");
 
             try
             {
+                var resultsPath = ResultsPath(args);
+                var branchAndBuildLabel = args[1];
+
+                Log.Info($"Processing path: '{resultsPath}' for branch/build: '{branchAndBuildLabel}'");
+
+
+                var client = new APIClient(ConfigurationManager.AppSettings["testrail-endpoint"])
+                {
+                    User = ConfigurationManager.AppSettings["username"],
+                    Password = ConfigurationManager.AppSettings["password"]
+                };
+
                 Task.Run(async () =>
                 {
-                    await new ImportManager(ProjectId).Run(testResultsPath, branchAndBuildLabel);
+                    await new ImportManager(client, ProjectId)
+                                    .Run(resultsPath, branchAndBuildLabel);
+
                 }).GetAwaiter().GetResult();
+            }
+            catch (ResultsImporterException ex)
+            {
+                Log.Error(ex);
+                return 1;
             }
             catch (Exception ex)
             {
                 Log.Error("An error has occured during processing:", ex);
-                return 1;
+                return 2;
             }
             return 0;
+        }
+
+        private static string ResultsPath(string[] args)
+        {
+            var testResultsPath = args[0];
+
+            if (!Directory.Exists(testResultsPath))
+            {
+                throw new ResultsImporterException($"Supplied directory doesn't exist or is invalid: {testResultsPath}");
+            }
+
+            return testResultsPath;
         }
 
     }
